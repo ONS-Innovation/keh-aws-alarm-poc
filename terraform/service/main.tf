@@ -66,7 +66,7 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
   depends_on = [aws_iam_role.lambda_execution_role]
 } 
 
-resource "aws_lambda_function" "slack_notifications" {
+resource "aws_lambda_function" "service_notifications" {
   function_name = "${var.domain}-${var.service_subdomain}-lambda"
   role          = aws_iam_role.lambda_execution_role.arn
   package_type  = "Image"
@@ -92,17 +92,17 @@ resource "aws_lambda_function" "slack_notifications" {
 resource "aws_lambda_permission" "allow_sns_invoke" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.slack_notifications.function_name
+  function_name = aws_lambda_function.service_notifications.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.service_notifications.arn
+  source_arn    = aws_sns_topic.service_notifications_topic.arn
 }
 
 resource "aws_sns_topic_subscription" "lambda_sub" {
-    topic_arn = aws_sns_topic.service_notifications.arn
+    topic_arn = aws_sns_topic.service_notifications_topic.arn
     protocol  = "lambda"
-    endpoint = aws_lambda_function.slack_notifications.arn
+    endpoint = aws_lambda_function.service_notifications.arn
 }
 
-resource "aws_sns_topic" "service_notifications" {
-    name = "${var.domain}-service-notifications"
+resource "aws_sns_topic" "service_notifications_topic" {
+    name = "${var.domain}-service-notifications-topic"
 }
